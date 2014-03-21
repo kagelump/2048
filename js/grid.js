@@ -17,6 +17,22 @@ Grid.prototype.build = function () {
   }
 };
 
+// Create and return a clone of the object
+Grid.prototype.clone = function () {
+  var new_grid = new Grid(this.size);
+  this.eachCell(function(x, y, tile) {
+    if (tile != null) {
+      new_grid.insertTile(tile.clone());
+    }
+  });
+  return new_grid;
+};
+
+
+Grid.prototype.set = function(x, y, tile) {
+  this.cells[x][y] = tile;
+};
+
 // Find the first available random position
 Grid.prototype.randomAvailableCell = function () {
   var cells = this.availableCells();

@@ -54,7 +54,13 @@ KeyboardInputManager.prototype.listen = function () {
                     event.shiftKey;
     var mapped    = map[event.which];
 
-    if (!modifiers) {
+    if (event.ctrlKey) {
+      // ctrl + z event
+      if (event.which == 89 || event.which == 90) {
+        event.preventDefault();
+        self.emit("undo", event.which);
+      }
+    } else if (!modifiers) {
       if (mapped !== undefined) {
         event.preventDefault();
         self.emit("move", mapped);
