@@ -7,6 +7,7 @@ function GameManager(size, InputManager, Actuator, ScoreManager) {
   this.startTiles   = 2;
 
   this.inputManager.on("move", this.move.bind(this));
+  this.inputManager.on("undo", this.undo.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 
@@ -36,6 +37,7 @@ GameManager.prototype.isGameTerminated = function () {
 // Set up the game
 GameManager.prototype.setup = function () {
   this.grid        = new Grid(this.size);
+  this.history     = new Array();
 
   this.score       = 0;
   this.over        = false;
@@ -99,6 +101,18 @@ GameManager.prototype.moveTile = function (tile, cell) {
   tile.updatePosition(cell);
 };
 
+// Undo or Redo the last move
+GameManager.prototype.undo = function (cmd) {
+  var self = this;
+  if (self.history.length > 0) {
+    var last_state = self.history.pop();
+    self.grid = last_state.grid;
+    self.score = last_state.score;
+
+    self.actuate();
+  }
+}
+
 // Move tiles on the grid in the specified direction
 GameManager.prototype.move = function (direction) {
   // 0: up, 1: right, 2:down, 3: left
@@ -111,6 +125,12 @@ GameManager.prototype.move = function (direction) {
   var vector     = this.getVector(direction);
   var traversals = this.buildTraversals(vector);
   var moved      = false;
+
+  // Save the current grid for undo.
+  self.history.push({
+      grid: this.grid.clone(),
+      score: this.score
+  });
 
   // Save the current tile positions and remove merger information
   this.prepareTiles();
@@ -160,6 +180,9 @@ GameManager.prototype.move = function (direction) {
     }
 
     this.actuate();
+  } else {
+    // Nothing happened, we don't actually need to save it.
+    this.history.pop();
   }
 };
 
